@@ -64,38 +64,48 @@ export async function fetchUnprocessedRecentEmails(processedLabel: string): Prom
   
   // Search for emails from last 24 hours that don't have the processed label
   const query = `newer_than:1d -label:${processedLabel}`;
+  console.log(`[Gmail] Searching for emails with query: ${query}`);
   
+  const startTime = Date.now();
   const { data: { messages } } = await gmail.users.messages.list({
     userId: 'me',
     q: query,
     maxResults: 100,
   });
+  console.log(`[Gmail] Found ${messages?.length || 0} message(s) in ${Date.now() - startTime}ms`);
 
   if (!messages || messages.length === 0) {
     return [];
   }
 
   const emails: Email[] = [];
+  // For testing, only fetch the first email
+  const limit = process.env.TEST_MODE === 'true' ? 1 : messages.length;
+  console.log(`[Gmail] Fetching details for ${limit} email(s) (${messages.length} total available)...`);
 
-  for (const message of messages) {
+  for (let i = 0; i < Math.min(limit, messages.length); i++) {
+    const message = messages[i];
     if (!message.id) continue;
 
     try {
+      const msgStartTime = Date.now();
       const { data: msg } = await gmail.users.messages.get({
         userId: 'me',
         id: message.id,
         format: 'full',
       });
+      console.log(`[Gmail] Fetched email ${i + 1}/${messages.length} (${message.id}) in ${Date.now() - msgStartTime}ms`);
 
       const email = parseEmail(msg);
       if (email) {
         emails.push(email);
       }
     } catch (error) {
-      console.error(`Error fetching email ${message.id}:`, error);
+      console.error(`[Gmail] Error fetching email ${message.id}:`, error);
     }
   }
 
+  console.log(`[Gmail] Successfully parsed ${emails.length} email(s)`);
   return emails;
 }
 
@@ -140,7 +150,7 @@ function parseEmail(msg: any): Email | null {
   };
 }
 
-function extractEmailAddresses(text: string): string[] {
+export function extractEmailAddresses(text: string): string[] {
   const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/gi;
   const matches = text.match(emailRegex) || [];
   return [...new Set(matches)];
@@ -175,10 +185,16 @@ export async function fetchAllSentEmails(): Promise<{ addresses: Set<string>; do
   const addresses = new Set<string>();
   const domains = new Set<string>();
 
+  console.log('[Gmail] Fetching sent emails history...');
+  const startTime = Date.now();
   let pageToken: string | undefined;
   let hasMore = true;
+  let totalMessages = 0;
+  let pageCount = 0;
 
   while (hasMore) {
+    pageCount++;
+    const pageStartTime = Date.now();
     const { data } = await gmail.users.messages.list({
       userId: 'me',
       q: 'in:sent',
@@ -191,8 +207,13 @@ export async function fetchAllSentEmails(): Promise<{ addresses: Set<string>; do
       break;
     }
 
-    // Fetch message details in batches
-    for (const message of data.messages) {
+    totalMessages += data.messages.length;
+    console.log(`[Gmail] Sent emails page ${pageCount}: ${data.messages.length} messages (${Date.now() - pageStartTime}ms)`);
+
+    // Fetch message details in batches (limit to first 1000 for speed)
+    const limit = Math.min(data.messages.length, 1000 - addresses.size);
+    for (let i = 0; i < limit; i++) {
+      const message = data.messages[i];
       if (!message.id) continue;
 
       try {
@@ -217,14 +238,20 @@ export async function fetchAllSentEmails(): Promise<{ addresses: Set<string>; do
           }
         }
       } catch (error) {
-        console.error(`Error fetching sent email ${message.id}:`, error);
+        console.error(`[Gmail] Error fetching sent email ${message.id}:`, error);
       }
+    }
+
+    if (addresses.size >= 1000) {
+      console.log(`[Gmail] Reached limit of 1000 sent addresses, stopping`);
+      break;
     }
 
     pageToken = data.nextPageToken || undefined;
     hasMore = !!pageToken;
   }
 
+  console.log(`[Gmail] Sent emails history: ${addresses.size} addresses, ${domains.size} domains (${Date.now() - startTime}ms total)`);
   return { addresses, domains };
 }
 
@@ -233,10 +260,15 @@ export async function fetchAllReceivedEmails(): Promise<{ addresses: Set<string>
   const addresses = new Set<string>();
   const domains = new Set<string>();
 
+  console.log('[Gmail] Fetching received emails history...');
+  const startTime = Date.now();
   let pageToken: string | undefined;
   let hasMore = true;
+  let pageCount = 0;
 
   while (hasMore) {
+    pageCount++;
+    const pageStartTime = Date.now();
     const { data } = await gmail.users.messages.list({
       userId: 'me',
       q: 'in:inbox OR in:all',
@@ -249,8 +281,12 @@ export async function fetchAllReceivedEmails(): Promise<{ addresses: Set<string>
       break;
     }
 
-    // Fetch message details in batches
-    for (const message of data.messages) {
+    console.log(`[Gmail] Received emails page ${pageCount}: ${data.messages.length} messages (${Date.now() - pageStartTime}ms)`);
+
+    // Fetch message details in batches (limit to first 1000 for speed)
+    const limit = Math.min(data.messages.length, 1000 - addresses.size);
+    for (let i = 0; i < limit; i++) {
+      const message = data.messages[i];
       if (!message.id) continue;
 
       try {
@@ -273,14 +309,20 @@ export async function fetchAllReceivedEmails(): Promise<{ addresses: Set<string>
           }
         }
       } catch (error) {
-        console.error(`Error fetching received email ${message.id}:`, error);
+        console.error(`[Gmail] Error fetching received email ${message.id}:`, error);
       }
+    }
+
+    if (addresses.size >= 1000) {
+      console.log(`[Gmail] Reached limit of 1000 received addresses, stopping`);
+      break;
     }
 
     pageToken = data.nextPageToken || undefined;
     hasMore = !!pageToken;
   }
 
+  console.log(`[Gmail] Received emails history: ${addresses.size} addresses, ${domains.size} domains (${Date.now() - startTime}ms total)`);
   return { addresses, domains };
 }
 

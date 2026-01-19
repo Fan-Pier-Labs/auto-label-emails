@@ -9,10 +9,12 @@ export async function getEmailHistory(useCache: boolean = true): Promise<EmailHi
   const now = Date.now();
   
   if (useCache && cachedHistory && (now - cacheTimestamp) < CACHE_TTL_MS) {
+    console.log('[History] Using cached email history');
     return cachedHistory;
   }
 
-  console.log('Fetching email history from Gmail API...');
+  console.log('[History] Fetching email history from Gmail API...');
+  const historyStartTime = Date.now();
   
   const [received, sent] = await Promise.all([
     fetchAllReceivedEmails(),
@@ -29,7 +31,7 @@ export async function getEmailHistory(useCache: boolean = true): Promise<EmailHi
   cachedHistory = history;
   cacheTimestamp = now;
 
-  console.log(`Email history loaded: ${received.addresses.size} received addresses, ${sent.addresses.size} sent addresses`);
+  console.log(`[History] Email history loaded: ${received.addresses.size} received addresses, ${sent.addresses.size} sent addresses (${Date.now() - historyStartTime}ms total)`);
   
   return history;
 }
