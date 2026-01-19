@@ -1,3 +1,6 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 export interface Config {
   gmail: {
     clientId: string;
@@ -19,13 +22,49 @@ export interface Config {
   };
 }
 
+interface GoogleCreds {
+  web?: {
+    client_id: string;
+    client_secret: string;
+  };
+  installed?: {
+    client_id: string;
+    client_secret: string;
+  };
+}
+
 export function loadConfig(): Config {
-  const gmailClientId = process.env.GMAIL_CLIENT_ID;
-  const gmailClientSecret = process.env.GMAIL_CLIENT_SECRET;
+  // Try to load from google_creds.json first
+  let gmailClientId: string | undefined;
+  let gmailClientSecret: string | undefined;
+  
+  try {
+    const credsPath = join(process.cwd(), 'google_creds.json');
+    const credsContent = readFileSync(credsPath, 'utf-8');
+    const creds: GoogleCreds = JSON.parse(credsContent);
+    
+    const webCreds = creds.web || creds.installed;
+    if (webCreds) {
+      gmailClientId = webCreds.client_id;
+      gmailClientSecret = webCreds.client_secret;
+    }
+  } catch (error) {
+    // File doesn't exist or can't be read, fall back to env vars
+    console.log('google_creds.json not found, using environment variables');
+  }
+
+  // Fall back to environment variables if not found in file
+  gmailClientId = gmailClientId || process.env.GMAIL_CLIENT_ID;
+  gmailClientSecret = gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
   const gmailRefreshToken = process.env.GMAIL_REFRESH_TOKEN;
 
   if (!gmailClientId || !gmailClientSecret || !gmailRefreshToken) {
-    throw new Error('Missing required Gmail OAuth credentials. Set GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, and GMAIL_REFRESH_TOKEN');
+    throw new Error(
+      'Missing required Gmail OAuth credentials.\n' +
+      'Either:\n' +
+      '  1. Create google_creds.json with client_id and client_secret, and set GMAIL_REFRESH_TOKEN env var\n' +
+      '  2. Set GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, and GMAIL_REFRESH_TOKEN environment variables'
+    );
   }
 
   const aiProvider = (process.env.AI_PROVIDER || 'ollama') as 'openai' | 'ollama';

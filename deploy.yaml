@@ -1,0 +1,9 @@
+platform: "fargate"
+app_name: "ryans-email-labeling"
+aws:
+  profile: "personal"
+  region: "us-east-2"
+task:
+  cpu: 1024
+  memory: 2048
+  replicas: 1

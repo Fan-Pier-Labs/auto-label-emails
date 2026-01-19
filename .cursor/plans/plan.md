@@ -4,46 +4,46 @@ overview: Build a stateless Bun TypeScript app that categorizes emails using det
 todos:
   - id: setup-project
     content: Initialize Bun TypeScript project with package.json, tsconfig.json, and project structure
-    status: in_progress
+    status: completed
   - id: gmail-integration
     content: Implement Gmail API client with OAuth2, email fetching, and label application functions
-    status: pending
+    status: completed
     dependencies:
       - setup-project
   - id: deterministic-labeling
     content: Implement stateless deterministic labeling rules (4 rules) that query Gmail API for history
-    status: pending
+    status: completed
     dependencies:
       - gmail-integration
   - id: sheets-integration
     content: Implement Google Sheets CSV fetching and parsing for label rules
-    status: pending
+    status: completed
     dependencies:
       - setup-project
   - id: ai-labeling
     content: Implement AI labeling with OpenAI and Ollama support, matching email content against sheet prompts
-    status: pending
+    status: completed
     dependencies:
       - sheets-integration
   - id: main-scheduler
     content: Create main entry point with scheduler that orchestrates email fetching, labeling, and application
-    status: pending
+    status: completed
     dependencies:
       - deterministic-labeling
       - ai-labeling
   - id: dockerfile
     content: Create production Dockerfile with Bun base image, install Ollama, and create startup script to run both Ollama and app
-    status: pending
+    status: completed
     dependencies:
       - setup-project
   - id: deploy-config
     content: Add deploy.yaml and deploy script to package.json
-    status: pending
+    status: completed
     dependencies:
       - setup-project
   - id: documentation
     content: Create README.md with setup instructions and .gitignore
-    status: pending
+    status: completed
 ---
 
 # Email Auto-Labeling Application
