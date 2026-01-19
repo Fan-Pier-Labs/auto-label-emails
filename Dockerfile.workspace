@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # shells/editors
     bash zsh fish vim nano \
     # timezones
-    tzdata \
+    tzdata zstd zip unzip \
   && rm -rf /var/lib/apt/lists/*
 
 # Git LFS init (won’t fail if not used)
@@ -59,6 +59,36 @@ RUN install -m 0755 -d /etc/apt/keyrings \
 
 # Set fish as default shell for root
 RUN usermod -s /usr/bin/fish root
+
+
+
+# Stuff that is specific for this project
+
+
+# Set default model (can be overridden with build arg)
+ARG OLLAMA_MODEL=llama3.2:3b
+ENV OLLAMA_MODEL=${OLLAMA_MODEL}
+
+# Copy build script for pulling model (copy early so we can use it)
+COPY pull-model.sh /tmp/pull-model.sh
+RUN chmod +x /tmp/pull-model.sh
+
+# Start Ollama, pull the model during build, then stop Ollama
+RUN /tmp/pull-model.sh ${OLLAMA_MODEL}
+
+# Copy package files
+COPY package.json bun.lockb* ./
+
+# Install dependencies
+RUN bun install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Make startup script executable
+RUN chmod +x /app/start.sh
+
+EXPOSE 11434
 
 # # Nice-to-have defaults
 # RUN python3 -m pip install --no-cache-dir --break-system-packages --upgrade --ignore-installed pip setuptools wheel

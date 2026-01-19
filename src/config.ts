@@ -91,7 +91,7 @@ export function loadConfig(): Config {
     },
     processing: {
       pollIntervalMinutes: parseInt(process.env.POLL_INTERVAL_MINUTES || '5', 10),
-      processedLabel: process.env.PROCESSED_LABEL || '__auto-processed__',
+      processedLabel: process.env.PROCESSED_LABEL || '[Superhuman]/ai/processed',
     },
   };
 }

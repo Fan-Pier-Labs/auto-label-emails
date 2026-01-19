@@ -25,8 +25,9 @@ async function testSingleEmail() {
   await createLabelIfNotExists(config.processing.processedLabel);
   console.log('✓ Processed label ready\n');
 
-  // Initialize AI
-  initializeAI(config.ai);
+  // Initialize AI (waits for Ollama to start if using Ollama)
+  console.log('Initializing AI...');
+  await initializeAI(config.ai);
   console.log('✓ AI client initialized\n');
 
   // Fetch unprocessed emails (up to 50)

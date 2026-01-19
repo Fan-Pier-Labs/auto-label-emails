@@ -5,13 +5,66 @@ import type { Config } from './config';
 let openaiClient: OpenAI | null = null;
 let ollamaConfig: { url: string; model: string } | null = null;
 
-export function initializeAI(config: Config['ai']) {
+export async function waitForOllama(url: string, model: string, maxRetries: number = 30, retryDelayMs: number = 2000): Promise<void> {
+  console.log(`[AI] Waiting for Ollama to start at ${url}...`);
+  
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fetch(`${url}/api/tags`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000),
+      });
+      
+      if (response.ok) {
+        console.log(`[AI] Ollama is ready!`);
+        
+        // Verify model is available
+        const modelsData = await response.json().catch(() => ({ models: [] }));
+        const availableModels = modelsData.models || [];
+        const modelNames = availableModels.map((m: any) => m.name);
+        console.log(`[AI] Available models: ${modelNames.join(', ') || 'none'}`);
+        
+        // Check if the required model exists
+        const modelExists = modelNames.some((name: string) => 
+          name === model || 
+          name.startsWith(model.split(':')[0] + ':') ||
+          name === model.split(':')[0]
+        );
+        
+        if (!modelExists) {
+          throw new Error(`Model ${model} not found. Run: ollama pull ${model}`);
+        }
+        
+        console.log(`[AI] Model ${model} is available`);
+        return;
+      }
+    } catch (error: any) {
+      // If it's a model error, throw immediately
+      if (error.message && error.message.includes('Model') && error.message.includes('not found')) {
+        throw error;
+      }
+      
+      if (i < maxRetries - 1) {
+        console.log(`[AI] Ollama not ready yet, waiting... (${i + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+      } else {
+        throw new Error(`Ollama failed to start after ${maxRetries} attempts. Make sure Ollama is running: ollama serve`);
+      }
+    }
+  }
+  
+  throw new Error(`Ollama failed to start after ${maxRetries} attempts. Make sure Ollama is running: ollama serve`);
+}
+
+export async function initializeAI(config: Config['ai']) {
   if (config.provider === 'openai') {
     if (!config.openaiApiKey) {
       throw new Error('OpenAI API key is required when using OpenAI provider');
     }
     openaiClient = new OpenAI({ apiKey: config.openaiApiKey });
   } else {
+    // Wait for Ollama to be ready and verify model before proceeding
+    await waitForOllama(config.ollamaUrl, config.ollamaModel);
     ollamaConfig = { url: config.ollamaUrl, model: config.ollamaModel };
   }
 }
@@ -98,27 +151,19 @@ async function matchWithOllama(
   const rulesText = rules.map(r => `- ${r.label}: ${r.prompt}`).join('\n');
 
   try {
-    // First check if Ollama is available
-    console.log(`[AI] Checking Ollama availability at ${config.url}...`);
+    // Verify model is available (should already be checked at startup, but double-check)
     const healthCheck = await fetch(`${config.url}/api/tags`, { 
       method: 'GET',
-      signal: AbortSignal.timeout(5000) // 5 second timeout
-    }).catch((err) => {
-      console.warn(`[AI] Ollama health check failed: ${err.message}`);
-      return null;
+      signal: AbortSignal.timeout(5000)
     });
     
-    if (!healthCheck || !healthCheck.ok) {
-      console.warn(`[AI] Ollama not available at ${config.url}, skipping AI labeling`);
-      console.warn(`[AI] Make sure Ollama is running: ollama serve`);
-      return [];
+    if (!healthCheck.ok) {
+      throw new Error(`Ollama health check failed: ${healthCheck.status} ${healthCheck.statusText}`);
     }
 
-    // Check if model is available
     const modelsData = await healthCheck.json().catch(() => ({ models: [] }));
     const availableModels = modelsData.models || [];
     const modelNames = availableModels.map((m: any) => m.name);
-    console.log(`[AI] Available models: ${modelNames.join(', ') || 'none'}`);
     
     const modelExists = modelNames.some((name: string) => 
       name === config.model || 
@@ -127,9 +172,7 @@ async function matchWithOllama(
     );
     
     if (!modelExists) {
-      console.warn(`[AI] Model ${config.model} not found.`);
-      console.warn(`[AI] Run: ollama pull ${config.model}`);
-      return [];
+      throw new Error(`Model ${config.model} not found. Run: ollama pull ${config.model}`);
     }
 
     console.log(`[AI] Using Ollama model: ${config.model}`);
@@ -177,11 +220,7 @@ Which labels apply?`,
 
     return matchedLabels;
   } catch (error: any) {
-    if (error.name === 'AbortError' || error.code === 'ECONNREFUSED') {
-      console.warn(`[AI] Ollama connection failed. Make sure Ollama is running: ollama serve`);
-    } else {
-      console.error('[AI] Error matching with Ollama:', error.message || error);
-    }
-    return [];
+    console.error('[AI] Error matching with Ollama:', error.message || error);
+    throw error; // Re-throw instead of returning empty array - no fallback
   }
 }
