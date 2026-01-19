@@ -1,6 +1,6 @@
 import { loadConfig } from './config';
 import { initializeGmail, createLabelIfNotExists, fetchUnprocessedRecentEmails, applyLabels, markAsProcessed } from './gmail';
-import { getEmailHistory, applyDeterministicLabels } from './deterministic';
+import { applyDeterministicLabels } from './deterministic';
 import { fetchLabelRules } from './sheets';
 import { initializeAI, applyAILabels } from './ai-labeler';
 import type { Email, ProcessingResult } from './types';
@@ -15,11 +15,8 @@ async function processEmail(
   try {
     console.log(`Processing email ${email.id}: ${email.subject}`);
 
-    // Get email history for deterministic rules
-    const history = await getEmailHistory();
-
-    // Apply deterministic labels
-    const deterministicLabels = await applyDeterministicLabels(email, history);
+    // Apply deterministic labels (uses Gmail search API)
+    const deterministicLabels = await applyDeterministicLabels(email);
     console.log(`  Deterministic labels: ${deterministicLabels.join(', ') || 'none'}`);
 
     // Fetch label rules from Google Sheets

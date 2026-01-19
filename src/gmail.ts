@@ -365,3 +365,100 @@ export async function applyLabels(emailId: string, labelNames: string[]): Promis
 export async function markAsProcessed(emailId: string, processedLabel: string): Promise<void> {
   await applyLabels(emailId, [processedLabel]);
 }
+
+// Check if we've received emails from a specific address (excluding current email)
+export async function hasReceivedFromAddress(emailAddress: string, excludeEmailId?: string): Promise<boolean> {
+  const gmail = getGmailClient();
+  try {
+    // Gmail search: wrap email in quotes to handle special characters
+    const query = `from:"${emailAddress}"`;
+    
+    const { data } = await gmail.users.messages.list({
+      userId: 'me',
+      q: query,
+      maxResults: 2, // Get up to 2 to check if there are others besides current
+    });
+    
+    if (!data.messages || data.messages.length === 0) {
+      return false;
+    }
+    
+    // If we have excludeEmailId, check if any result is NOT the current email
+    if (excludeEmailId) {
+      return data.messages.some(msg => msg.id !== excludeEmailId);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`[Gmail] Error checking received from address ${emailAddress}:`, error);
+    return false;
+  }
+}
+
+// Check if we've received emails from a specific domain (excluding current email)
+export async function hasReceivedFromDomain(domain: string, excludeEmailId?: string): Promise<boolean> {
+  const gmail = getGmailClient();
+  try {
+    // Gmail search: from:domain.com searches for emails from that domain
+    const query = `from:${domain}`;
+    
+    const { data } = await gmail.users.messages.list({
+      userId: 'me',
+      q: query,
+      maxResults: 2, // Get up to 2 to check if there are others besides current
+    });
+    
+    if (!data.messages || data.messages.length === 0) {
+      return false;
+    }
+    
+    // If we have excludeEmailId, check if any result is NOT the current email
+    if (excludeEmailId) {
+      return data.messages.some(msg => msg.id !== excludeEmailId);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`[Gmail] Error checking received from domain ${domain}:`, error);
+    return false;
+  }
+}
+
+// Check if we've sent emails to a specific address
+export async function hasSentToAddress(emailAddress: string): Promise<boolean> {
+  const gmail = getGmailClient();
+  try {
+    // Gmail search: wrap email in quotes to handle special characters
+    const query = `to:"${emailAddress}" in:sent`;
+    
+    const { data } = await gmail.users.messages.list({
+      userId: 'me',
+      q: query,
+      maxResults: 1,
+    });
+    
+    return (data.messages?.length || 0) > 0;
+  } catch (error) {
+    console.error(`[Gmail] Error checking sent to address ${emailAddress}:`, error);
+    return false;
+  }
+}
+
+// Check if we've sent emails to a specific domain
+export async function hasSentToDomain(domain: string): Promise<boolean> {
+  const gmail = getGmailClient();
+  try {
+    const query = `to:${domain} in:sent`;
+    
+    const { data } = await gmail.users.messages.list({
+      userId: 'me',
+      q: query,
+      maxResults: 1,
+    });
+    
+    return (data.messages?.length || 0) > 0;
+  } catch (error) {
+    console.error(`[Gmail] Error checking sent to domain ${domain}:`, error);
+    return false;
+  }
+}
