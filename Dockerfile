@@ -6,7 +6,7 @@ WORKDIR /app
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
 # Set default model (can be overridden with build arg)
-ARG OLLAMA_MODEL=llama3.2:3b
+ARG OLLAMA_MODEL=llama3.2:1b
 ENV OLLAMA_MODEL=${OLLAMA_MODEL}
 
 # Copy build script for pulling model (copy early so we can use it)

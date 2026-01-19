@@ -84,7 +84,7 @@ export function loadConfig(): Config {
       provider: aiProvider,
       openaiApiKey,
       ollamaUrl: process.env.OLLAMA_URL || 'http://localhost:11434',
-      ollamaModel: process.env.OLLAMA_MODEL || 'llama3.2:3b',
+      ollamaModel: process.env.OLLAMA_MODEL || 'llama3.2:1b',
     },
     sheets: {
       spreadsheetId: process.env.GOOGLE_SHEETS_ID || '1T9vwarXB3ICksZpP4gHw-rllKve0j2tKBDEEEsIVEAM',
