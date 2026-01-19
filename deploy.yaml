@@ -6,4 +6,5 @@ aws:
 task:
   cpu: 1024
   memory: 2048
+  spot: true
   replicas: 1

@@ -1,5 +1,14 @@
 # Email Auto-Labeling Service
 
+## todo
+
+i need to upload the refresh token (in .env) to aws secret manager and set up a secret
+
+and then this should work
+
+
+
+
 Automated email labeling service that uses deterministic rules and AI to categorize emails in Gmail.
 
 ## Features
