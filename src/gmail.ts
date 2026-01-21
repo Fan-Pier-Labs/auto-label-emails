@@ -59,11 +59,22 @@ export async function createLabelIfNotExists(labelName: string): Promise<string>
   }
 }
 
-export async function fetchUnprocessedRecentEmails(processedLabel: string): Promise<Email[]> {
+export async function fetchUnprocessedRecentEmails(
+  processedLabel?: string,
+  processedEmailIds?: Set<string>
+): Promise<Email[]> {
   const gmail = getGmailClient();
   
-  // Search for emails from last 24 hours that don't have the processed label
-  const query = `newer_than:1d -label:${processedLabel}`;
+  // Build query based on tracking mode
+  let query: string;
+  if (processedLabel) {
+    // Label-based tracking: search for emails that don't have the processed label
+    query = `newer_than:1d -label:${processedLabel}`;
+  } else {
+    // In-memory tracking: fetch all recent emails (filtering happens after)
+    query = 'newer_than:1d';
+  }
+  
   console.log(`[Gmail] Searching for emails with query: ${query}`);
   
   const startTime = Date.now();
@@ -86,6 +97,11 @@ export async function fetchUnprocessedRecentEmails(processedLabel: string): Prom
   for (let i = 0; i < Math.min(limit, messages.length); i++) {
     const message = messages[i];
     if (!message.id) continue;
+
+    // Skip if using in-memory tracking and email ID is already processed
+    if (processedEmailIds && processedEmailIds.has(message.id)) {
+      continue;
+    }
 
     try {
       const msgStartTime = Date.now();

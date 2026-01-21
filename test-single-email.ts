@@ -11,7 +11,11 @@ async function testSingleEmail() {
   // Load configuration
   const config = loadConfig();
   console.log(`AI Provider: ${config.ai.provider}`);
-  console.log(`Processed Label: ${config.processing.processedLabel}\n`);
+  console.log(`Tracking Mode: ${config.processing.useInMemoryTracking ? 'In-Memory' : 'Gmail Label'}`);
+  if (!config.processing.useInMemoryTracking) {
+    console.log(`Processed Label: ${config.processing.processedLabel}`);
+  }
+  console.log();
 
   // Initialize Gmail client
   initializeGmail(
@@ -20,19 +24,27 @@ async function testSingleEmail() {
     config.gmail.refreshToken
   );
 
-  // Ensure processed label exists
-  console.log('Ensuring processed label exists...');
-  await createLabelIfNotExists(config.processing.processedLabel);
-  console.log('✓ Processed label ready\n');
+  // Ensure processed label exists (only if not using in-memory tracking)
+  if (!config.processing.useInMemoryTracking) {
+    console.log('Ensuring processed label exists...');
+    await createLabelIfNotExists(config.processing.processedLabel);
+    console.log('✓ Processed label ready\n');
+  }
 
   // Initialize AI (waits for Ollama to start if using Ollama)
   console.log('Initializing AI...');
   await initializeAI(config.ai);
   console.log('✓ AI client initialized\n');
 
+  // In-memory tracking for test script
+  const processedEmailIds = new Set<string>();
+
   // Fetch unprocessed emails (up to 50)
   console.log('Fetching unprocessed emails...');
-  const allEmails = await fetchUnprocessedRecentEmails(config.processing.processedLabel);
+  const allEmails = await fetchUnprocessedRecentEmails(
+    config.processing.useInMemoryTracking ? undefined : config.processing.processedLabel,
+    config.processing.useInMemoryTracking ? processedEmailIds : undefined
+  );
   
   if (allEmails.length === 0) {
     console.log('No unprocessed emails found in the last 24 hours.');
@@ -69,11 +81,22 @@ async function testSingleEmail() {
       
       // Apply labels
       if (allLabels.length > 0) {
-        await applyLabels(email.id, [...allLabels, config.processing.processedLabel]);
+        const labelsToApply = config.processing.useInMemoryTracking 
+          ? allLabels 
+          : [...allLabels, config.processing.processedLabel];
+        await applyLabels(email.id, labelsToApply);
         console.log(`  ✓ Applied: ${allLabels.join(', ')}`);
       } else {
-        await markAsProcessed(email.id, config.processing.processedLabel);
-        console.log(`  ✓ No labels (marked as processed)`);
+        // Even if no labels, mark as processed (only if not using in-memory tracking)
+        if (!config.processing.useInMemoryTracking) {
+          await markAsProcessed(email.id, config.processing.processedLabel);
+        }
+        console.log(`  ✓ No labels${config.processing.useInMemoryTracking ? '' : ' (marked as processed)'}`);
+      }
+
+      // Add to in-memory tracking if enabled
+      if (config.processing.useInMemoryTracking) {
+        processedEmailIds.add(email.id);
       }
       
       results.push({

@@ -16,6 +16,10 @@ todo to get it live is basically
 - make a cool video with remotion.dev 
 
 
+also refactor this so it will list emails that need processing then for each (fetch the email, process it, continue). right now it lists all, fetches all, processes all
+
+
+ensure that it uses different llm calls for each label.
 
 
 Automated email labeling service that uses deterministic rules and AI to categorize emails in Gmail.
