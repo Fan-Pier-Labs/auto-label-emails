@@ -11,7 +11,9 @@
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly",
     "source=${localEnv:HOME}/.config/fish,target=/root/.config/fish,type=bind,readonly",
-    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind,readonly"
+    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind,readonly",
+    "source=${localEnv:HOME}/.aws,target=/root/.aws,type=bind,readonly",
+		"source=${localEnv:HOME}/.cursor,target=/root/.cursor,type=bind"
   ],
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
@@ -30,26 +32,8 @@
 				"terminal.integrated.defaultProfile.linux": "fish"
 			}
 		}
-	},
+	}
 
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "devcontainer"
 }
-
-
-
-// tood: add this 
-
-// {
-//   "name": "repo-dev",
-//   "build": { "dockerfile": "../Dockerfile" },
-//   "workspaceFolder": "/workspace",
-//   "remoteUser": "root",
-//   "mounts": [
-//     "source=${env:HOME}/.ssh,target=/root/.ssh,type=bind,readonly",
-//     "source=${env:HOME}/.config/fish,target=/root/.config/fish,type=bind,readonly"
-//   ]
-// }  
-
-
-

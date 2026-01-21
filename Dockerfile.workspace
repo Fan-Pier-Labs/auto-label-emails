@@ -65,6 +65,15 @@ RUN usermod -s /usr/bin/fish root
 # Stuff that is specific for this project
 
 
+# Install Ollama
+RUN curl -fsSL https://ollama.com/install.sh | sh && \
+    # Verify installation
+    test -f /usr/local/bin/ollama && \
+    chmod +x /usr/local/bin/ollama && \
+    # Ensure it's in PATH
+    echo 'export PATH="/usr/local/bin:$PATH"' >> /root/.bashrc && \
+    echo 'export PATH="/usr/local/bin:$PATH"' >> /root/.profile
+
 # Set default model (can be overridden with build arg)
 ARG OLLAMA_MODEL=llama3.2:1b
 ENV OLLAMA_MODEL=${OLLAMA_MODEL}

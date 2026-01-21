@@ -11,7 +11,7 @@
     "deploy": "python3 ./node_modules/deploy/main.py --config deploy.yaml"
   },
   "devDependencies": {
-    "deploy": "git@github.com:Fan-Pier-Labs/deploy.git",
+    "deploy": "https://github.com/Fan-Pier-Labs/deploy.git",
     "@types/node": "^20.10.0",
     "typescript": "^5.3.3"
   },
