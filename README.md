@@ -6,6 +6,15 @@ i need to upload the refresh token (in .env) to aws secret manager and set up a 
 
 and then this should work
 
+also i want to make a template google sheet that people can copy during the setup
+
+also change the __processed__ label so the ids just live in ram, and it doens't add that label. 
+
+todo to get it live is basically
+- add ananlytics with amplitude so we can see usage
+- make a splash page with v0
+- make a cool video with remotion.dev 
+
 
 
 
