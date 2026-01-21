@@ -20,6 +20,7 @@ export interface Config {
     pollIntervalMinutes: number;
     processedLabel: string;
     useInMemoryTracking: boolean;
+    dryRun: boolean;
   };
 }
 
@@ -85,7 +86,7 @@ export function loadConfig(): Config {
       provider: aiProvider,
       openaiApiKey,
       ollamaUrl: process.env.OLLAMA_URL || 'http://localhost:11434',
-      ollamaModel: process.env.OLLAMA_MODEL || 'llama3.2:1b',
+      ollamaModel: process.env.OLLAMA_MODEL || 'llama3.2:3b',
     },
     sheets: {
       spreadsheetId: process.env.GOOGLE_SHEETS_ID || '1T9vwarXB3ICksZpP4gHw-rllKve0j2tKBDEEEsIVEAM',
@@ -94,6 +95,7 @@ export function loadConfig(): Config {
       pollIntervalMinutes: parseInt(process.env.POLL_INTERVAL_MINUTES || '5', 10),
       processedLabel: process.env.PROCESSED_LABEL || '[Superhuman]/ai/processed',
       useInMemoryTracking: process.env.USE_IN_MEMORY_TRACKING === 'true',
+      dryRun: process.env.DRY_RUN === 'true',
     },
   };
 }

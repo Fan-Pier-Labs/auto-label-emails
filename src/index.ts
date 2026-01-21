@@ -15,40 +15,55 @@ async function processEmail(
   config: ReturnType<typeof loadConfig>
 ): Promise<ProcessingResult> {
   try {
-    console.log(`Processing email ${email.id}: ${email.subject}`);
+    console.log(`\n\n\nProcessing email ${email.id}: ${email.subject}`);
 
     // Apply deterministic labels (uses Gmail search API)
     const deterministicLabels = await applyDeterministicLabels(email);
-    console.log(`  Deterministic labels: ${deterministicLabels.join(', ') || 'none'}`);
 
     // Fetch label rules from Google Sheets
     const rules = await fetchLabelRules(config.sheets.spreadsheetId);
 
     // Apply AI labels
     const aiLabels = await applyAILabels(email, rules, config.ai);
-    console.log(`  AI labels: ${aiLabels.join(', ') || 'none'}`);
 
     // Combine all labels
     const allLabels = [...new Set([...deterministicLabels, ...aiLabels])];
 
-    if (allLabels.length > 0) {
-      // Apply all labels (and processed label if not using in-memory tracking)
-      const labelsToApply = config.processing.useInMemoryTracking 
-        ? allLabels 
-        : [...allLabels, config.processing.processedLabel];
-      await applyLabels(email.id, labelsToApply);
-      console.log(`  Applied labels: ${allLabels.join(', ')}`);
-    } else {
-      // Even if no labels, mark as processed (only if not using in-memory tracking)
-      if (!config.processing.useInMemoryTracking) {
-        await markAsProcessed(email.id, config.processing.processedLabel);
+    if (config.processing.dryRun) {
+      // Dry run mode: just show what would be applied
+      if (allLabels.length > 0) {
+        const labelsToApply = config.processing.useInMemoryTracking 
+          ? allLabels 
+          : [...allLabels, config.processing.processedLabel];
+        console.log(`  [DRY RUN] Would apply labels: ${labelsToApply.join(', ')}`);
+      } else {
+        if (!config.processing.useInMemoryTracking) {
+          console.log(`  [DRY RUN] Would mark as processed (no labels to apply)`);
+        } else {
+          console.log(`  [DRY RUN] No labels to apply`);
+        }
       }
-      console.log(`  No labels to apply`);
-    }
+    } else {
+      // Normal mode: actually apply labels
+      if (allLabels.length > 0) {
+        // Apply all labels (and processed label if not using in-memory tracking)
+        const labelsToApply = config.processing.useInMemoryTracking 
+          ? allLabels 
+          : [...allLabels, config.processing.processedLabel];
+        await applyLabels(email.id, labelsToApply);
+        console.log(`  Applied labels: ${allLabels.join(', ')}`);
+      } else {
+        // Even if no labels, mark as processed (only if not using in-memory tracking)
+        if (!config.processing.useInMemoryTracking) {
+          await markAsProcessed(email.id, config.processing.processedLabel);
+        }
+        console.log(`  No labels to apply`);
+      }
 
-    // Add to in-memory tracking if enabled
-    if (config.processing.useInMemoryTracking) {
-      processedEmailIds.add(email.id);
+      // Add to in-memory tracking if enabled (only in normal mode)
+      if (config.processing.useInMemoryTracking) {
+        processedEmailIds.add(email.id);
+      }
     }
 
     return {
@@ -120,6 +135,9 @@ async function main() {
   // Load configuration
   const config = loadConfig();
   console.log(`AI Provider: ${config.ai.provider}`);
+  if (config.processing.dryRun) {
+    console.log(`⚠️  DRY RUN MODE - No labels will be applied to emails`);
+  }
   console.log(`Poll Interval: ${config.processing.pollIntervalMinutes} minutes`);
   console.log(`Tracking Mode: ${config.processing.useInMemoryTracking ? 'In-Memory' : 'Gmail Label'}`);
   if (!config.processing.useInMemoryTracking) {
@@ -148,18 +166,26 @@ async function main() {
   // Handle graceful shutdown
   process.on('SIGINT', () => {
     console.log('\nReceived SIGINT, shutting down gracefully...');
+    process.exit(0);
     shouldStop = true;
   });
 
-  process.on('SIGTERM', () => {
+  process.on('SIGTERM', () => { 
     console.log('\nReceived SIGTERM, shutting down gracefully...');
+    process.exit(0);
     shouldStop = true;
   });
 
   // Run initial cycle
   await runProcessingCycle(config);
 
-  // Schedule periodic runs
+  // In dry run mode, exit after one cycle
+  if (config.processing.dryRun) {
+    console.log('\n✅ Dry run complete. No labels were applied.');
+    process.exit(0);
+  }
+
+  // Schedule periodic runs (only in normal mode)
   const intervalMs = config.processing.pollIntervalMinutes * 60 * 1000;
   const intervalId = setInterval(async () => {
     if (shouldStop) {
