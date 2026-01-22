@@ -6,7 +6,12 @@ i need to upload the refresh token (in .env) to aws secret manager and set up a 
 
 and then this should work
 
-also i want to make a template google sheet that people can copy during the setup
+also i want to make a template google sheet that people can copy during the setup DONE
+https://docs.google.com/spreadsheets/d/1oRvLEi2uj0ENbJ42EyINLzWcbC92HwGriMq5ejKhXYM/edit?gid=0#gid=0
+
+
+also add the ability to enable/disable the deterministic rules from the spread sheet as well. we can use columns F:G
+
 
 also change the __processed__ label so the ids just live in ram, and it doens't add that label.  DONE
 

@@ -49,7 +49,8 @@ OLLAMA_MODEL=llama3.2:1b  # Default
 # Google Sheets (Optional, has default)
 # The sheet must be publicly viewable so this code can access it without auth
 # You can provide either a full URL or just the spreadsheet ID
-GOOGLE_SHEETS_URL=https://docs.google.com/spreadsheets/d/1T9vwarXB3ICksZpP4gHw-rllKve0j2tKBDEEEsIVEAM/edit?usp=sharing
+# Template https://docs.google.com/spreadsheets/d/1oRvLEi2uj0ENbJ42EyINLzWcbC92HwGriMq5ejKhXYM/edit?gid=0#gid=0
+GOOGLE_SHEETS_URL=https://docs.google.com/spreadsheets/d/1oRvLEi2uj0ENbJ42EyINLzWcbC92HwGriMq5ejKhXYM/edit?gid=0#gid=0
 
 # Processing (Optional)
 POLL_INTERVAL_MINUTES=5  # Default
