@@ -6,7 +6,7 @@
 
 - [ ] also add the ability to enable/disable the deterministic rules from the spread sheet as well. we can use columns F:G
 
-- [ ] add ananlytics with amplitude so we can see usage. make sure to record user's emails and names and usage (eg labeled 10 emails at 10am for user X with email x@gmail.com). Send this data to amplitude where we can have some charts to see this. You can set up an amplitude account and make me the owner of it. 
+- [ ] add ananlytics with amplitude so we can see usage. make sure to record user's emails and names and usage (eg labeled 10 emails at 10am for user X with email x@gmail.com). Don't record the contents or titles of the emails. Send this data to amplitude where we can have some charts to see this. You can set up an amplitude account and make me the owner of it. 
 
 - [ ] make a splash page with v0. I can host it on my aws. 
 - [ ] make a cool video with remotion.dev  for the  v0 site (maybe? just if its easy. we could have a video of labels being applied to an inbox with fake emails. we could have the fake emails be funny as well.)
