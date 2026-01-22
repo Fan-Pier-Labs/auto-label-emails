@@ -1,6 +1,10 @@
 
 
-Automated email labeling service that uses deterministic rules and AI to categorize emails in Gmail.
+# Auto Label Emails with AI
+
+### By [Fan Pier Labs](https://fanpierlabs.com)
+
+This is a completely free, open source project made by Fan Pier Labs. With just a few clicks, you can set up custom labels in Gmail that are automatically applied using AI smart rules. This project helps you sort through emails and prioritize important messages, saving you time and ensuring you never miss critical communications. 
 
 ## Features
 

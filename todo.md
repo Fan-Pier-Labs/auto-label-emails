@@ -36,6 +36,8 @@ also iron out the deployment steps a bit and test the code yourself - try a few 
 
 
 
+also, add fan pier labs branding throughout the project 
+
 
 
 
