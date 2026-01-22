@@ -1,5 +1,5 @@
 platform: "fargate"
-app_name: "ryans-email-labeling"
+app_name: "auto-email-labeling"
 aws:
   profile: "personal"
   region: "us-east-2"

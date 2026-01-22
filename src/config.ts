@@ -35,6 +35,33 @@ interface GoogleCreds {
   };
 }
 
+/**
+ * Extracts the spreadsheet ID from a Google Sheets URL or returns the ID if already provided.
+ * Supports URLs like:
+ * - https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit
+ * - https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit?usp=sharing
+ * - https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit#gid=0
+ */
+function extractSpreadsheetId(urlOrId: string): string {
+  // If it's already just an ID (no slashes or protocol), return as-is
+  if (!urlOrId.includes('/') && !urlOrId.includes('://')) {
+    return urlOrId;
+  }
+
+  // Try to extract ID from URL
+  // Pattern: /d/SPREADSHEET_ID/ or /d/SPREADSHEET_ID? or /d/SPREADSHEET_ID#
+  const match = urlOrId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (match && match[1]) {
+    return match[1];
+  }
+
+  // If we can't parse it, throw an error
+  throw new Error(
+    `Invalid Google Sheets URL or ID: ${urlOrId}\n` +
+    `Expected format: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit or just SPREADSHEET_ID`
+  );
+}
+
 export function loadConfig(): Config {
   // Try to load from google_creds.json first
   let gmailClientId: string | undefined;
@@ -89,7 +116,11 @@ export function loadConfig(): Config {
       ollamaModel: process.env.OLLAMA_MODEL || 'llama3.2:3b',
     },
     sheets: {
-      spreadsheetId: process.env.GOOGLE_SHEETS_ID || '1T9vwarXB3ICksZpP4gHw-rllKve0j2tKBDEEEsIVEAM',
+      spreadsheetId: extractSpreadsheetId(
+        process.env.GOOGLE_SHEETS_URL || 
+        process.env.GOOGLE_SHEETS_ID || 
+        '1T9vwarXB3ICksZpP4gHw-rllKve0j2tKBDEEEsIVEAM'
+      ),
     },
     processing: {
       pollIntervalMinutes: parseInt(process.env.POLL_INTERVAL_MINUTES || '5', 10),
