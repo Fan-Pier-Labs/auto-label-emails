@@ -18,7 +18,27 @@ also change the __processed__ label so the ids just live in ram, and it doens't 
 todo to get it live is basically
 - add ananlytics with amplitude so we can see usage
 - make a splash page with v0
-- make a cool video with remotion.dev 
+- make a cool video with remotion.dev  for the  v0 site (maybe?)
+
+
+
+make a tutorial video on how to set this up
+1. the user will go into google cloud and make a oauth client
+2. the user will add the oauth json to this folder
+3. the user will run get-token.ts locally to get a google refresh token (the code should add this to some file that is included in the deploy, or upload it to aws secrets manager automatically, etc )
+4. the user deploys the code somewhere with docker
+
+(i think it is best if i make the video, but if you guys can iron out the details that would be great)
+
+
+also iron out the deployment steps a bit and test the code yourself - try a few different models, the llama3.2:3b was working well, but it is huge and slow. Maybe ssomething else would be better. mabye try R1 1776 ? 
+
+
+
+
+
+
+
 
 
 also refactor this so it will list emails that need processing then for each {fetch the email, process it, continue}. right now it lists all, fetches all, processes all
