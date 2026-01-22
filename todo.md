@@ -31,7 +31,7 @@ make a tutorial video on how to set this up
 (i think it is best if i make the video, but if you guys can iron out the details that would be great)
 
 
-also iron out the deployment steps a bit and test the code yourself - try a few different models, the llama3.2:3b was working well, but it is huge and slow. Maybe something else would be better. mabye try R1 1776 ? of course we should support just using api calls to openai/etc as well. personally i dont really want to send all my email to open ai but others may be open to that 
+also iron out the deployment steps a bit and test the code yourself - try a few different models, the llama3.2:3b was working well, but it is huge and slow. Maybe something else would be better. mabye try R1 1776 ? of course we should support just using api calls to openai/etc as well. personally i dont really want to send all my email to open ai but others may be open to that. 
 
 
 
