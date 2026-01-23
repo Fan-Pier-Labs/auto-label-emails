@@ -9,7 +9,6 @@
 - [ ] add ananlytics with amplitude so we can see usage. make sure to record user's emails and names and usage (eg labeled 10 emails at 10am for user X with email x@gmail.com). Don't record the contents or titles of the emails. Send this data to amplitude where we can have some charts to see this. You can set up an amplitude account and make me the owner of it. 
 
 - [ ] make a splash page with v0. I can host it on my aws. 
-- [ ] make a cool video with remotion.dev  for the  v0 site (maybe? just if its easy. we could have a video of labels being applied to an inbox with fake emails. we could have the fake emails be funny as well.)
 - [ ] make a tutorial video that people can follow to set it up themselves. this can be: 
   - [ ] 1. the user will go into google cloud and make a oauth client
   - [ ] 2. the user will add the oauth json to this folder
@@ -20,3 +19,7 @@
 - [ ] also, add fan pier labs branding throughout the project 
 - [ ] also refactor this so it will list emails that need processing then for each {fetch the email, process it, continue}. right now it lists all, fetches all, processes all
 - [ ] also do some testing to ensure quality - the llama 1b model was pretty bad so i upped to the 3b which was really slow on my mac
+
+
+## wishlist 
+- [ ] make a cool video with remotion.dev  for the  v0 site (maybe? just if its easy. we could have a video of labels being applied to an inbox with fake emails. we could have the fake emails be funny as well.)
