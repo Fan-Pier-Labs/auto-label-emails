@@ -34,7 +34,25 @@ Btw, if you would like some custom software developed, reach out to us at https:
 2. Create a new project or select existing
 3. Enable Gmail API
 4. Create OAuth 2.0 credentials (Desktop app)
-5. Get your `client_id`, `client_secret`, and `refresh_token`
+5. Configure OAuth consent screen:
+   - Go to **APIs & Services** > **OAuth consent screen**
+   - Add your email as a test user in the **Test users** section
+   - This is required because the app is in testing mode
+6. Add redirect URI:
+   - Edit your OAuth 2.0 credentials
+   - Add `http://localhost:8080` to **Authorized redirect URIs**
+   - Save the changes
+7. Download credentials:
+   - Download the JSON file from your OAuth 2.0 credentials
+   - Save it as `google_creds.json` in the project root
+8. Get your refresh token:
+   ```bash
+   bun run get-refresh-token.ts
+   ```
+   - This will open a browser window for authorization
+   - After authorizing, the refresh token will be displayed in the console
+   - Copy the refresh token to your `.env` file
+9. Copy your `client_id`, `client_secret`, and `refresh_token` to your `.env` file
 
 ### 2. Environment Variables
 
