@@ -1,4 +1,4 @@
-import { loadConfig } from './config';
+import { loadConfig, type Config } from './config';
 import { initializeGmail, createLabelIfNotExists, fetchUnprocessedRecentEmails, applyLabels, markAsProcessed } from './gmail';
 import { applyDeterministicLabels } from './deterministic';
 import { fetchLabelRules } from './sheets';
@@ -12,7 +12,7 @@ const processedEmailIds = new Set<string>();
 
 async function processEmail(
   email: Email,
-  config: ReturnType<typeof loadConfig>
+  config: Config
 ): Promise<ProcessingResult> {
   try {
     console.log(`\n\n\nProcessing email ${email.id}: ${email.subject}`);
@@ -82,7 +82,7 @@ async function processEmail(
   }
 }
 
-async function runProcessingCycle(config: ReturnType<typeof loadConfig>) {
+async function runProcessingCycle(config: Config) {
   if (isRunning) {
     console.log('Processing cycle already running, skipping...');
     return;
@@ -133,7 +133,7 @@ async function main() {
   console.log('Starting Email Auto-Labeling Service...');
 
   // Load configuration
-  const config = loadConfig();
+  const config = await loadConfig();
   console.log(`AI Provider: ${config.ai.provider}`);
   if (config.processing.dryRun) {
     console.log(`⚠️  DRY RUN MODE - No labels will be applied to emails`);

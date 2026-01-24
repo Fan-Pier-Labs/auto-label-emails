@@ -5,6 +5,16 @@ aws:
   region: "us-east-2"
 task:
   cpu: 1024
-  memory: 2048
+  memory: 4096
   spot: true
   replicas: 1
+  ephemeral_storage: 22
+allow_create: true
+custom_iam_policy:
+  Version: "2012-10-17"
+  Statement:
+    - Effect: "Allow"
+      Action:
+        - "secretsmanager:GetSecretValue"
+        - "secretsmanager:DescribeSecret"
+      Resource: "arn:aws:secretsmanager:us-east-2:*:secret:auto-email-labeling/gmail-refresh-token*"
