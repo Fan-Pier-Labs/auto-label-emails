@@ -61,6 +61,20 @@ RUN install -m 0755 -d /etc/apt/keyrings \
 RUN usermod -s /usr/bin/fish root
 
 
+# ---- AWS CLI (architecture-aware) ----
+  RUN ARCH=$(dpkg --print-architecture) \
+  && if [ "$ARCH" = "amd64" ]; then \
+       AWS_CLI_URL="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"; \
+     elif [ "$ARCH" = "arm64" ]; then \
+       AWS_CLI_URL="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"; \
+     else \
+       echo "Unsupported architecture: $ARCH" && exit 1; \
+     fi \
+  && curl "$AWS_CLI_URL" -o "awscliv2.zip" \
+  && unzip awscliv2.zip \
+  && ./aws/install \
+  && rm -rf awscliv2.zip aws
+
 
 # Stuff that is specific for this project
 
@@ -69,15 +83,15 @@ RUN usermod -s /usr/bin/fish root
 # RUN curl -fsSL https://ollama.com/install.sh
 
 # Set default model (can be overridden with build arg)
-ARG OLLAMA_MODEL=llama3.2:1b
-ENV OLLAMA_MODEL=${OLLAMA_MODEL}
+# ARG OLLAMA_MODEL=llama3.2:1b
+# ENV OLLAMA_MODEL=${OLLAMA_MODEL}
 
-# Copy build script for pulling model (copy early so we can use it)
-COPY pull-model.sh /tmp/pull-model.sh
-RUN chmod +x /tmp/pull-model.sh
+# # Copy build script for pulling model (copy early so we can use it)
+# COPY pull-model.sh /tmp/pull-model.sh
+# RUN chmod +x /tmp/pull-model.sh
 
-# Start Ollama, pull the model during build, then stop Ollama
-RUN /tmp/pull-model.sh ${OLLAMA_MODEL}
+# # Start Ollama, pull the model during build, then stop Ollama
+# RUN /tmp/pull-model.sh ${OLLAMA_MODEL}
 
 # Copy package files
 COPY package.json bun.lockb* ./

@@ -6,6 +6,8 @@
 
 This is a completely free, open source project made by Fan Pier Labs. With just a few clicks, you can set up custom labels in Gmail that are automatically applied using AI smart rules. This project helps you sort through emails and prioritize important messages, saving you time and ensuring you never miss critical communications. 
 
+This works by using AI to label your emails. You can set up any number of your own AI rules to determine which emails should be labeled and how they should be labeled. You can self-host on your own server, or use our hosted version. 
+
 Btw, if you would like some custom software developed, reach out to us at https://fanpierlabs.com! We specialize in making nifty AI tools. 
 
 ## Features
