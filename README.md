@@ -47,12 +47,13 @@ Btw, if you would like some custom software developed, reach out to us at https:
    - Save it as `google_creds.json` in the project root
 8. Get your refresh token:
    ```bash
-   bun run get-refresh-token.ts
+   bun run get-token
    ```
    - This will open a browser window for authorization
    - After authorizing, the refresh token will be displayed in the console
-   - Copy the refresh token to your `.env` file
-9. Copy your `client_id`, `client_secret`, and `refresh_token` to your `.env` file
+   - Copy the refresh token to your `.env` file (for local development)
+   - For AWS deployment, you can store it in AWS Secrets Manager (see Deployment section)
+9. Copy your `client_id`, `client_secret`, and `refresh_token` to your `.env` file (for local development)
 
 ### 2. Environment Variables
 
@@ -124,13 +125,54 @@ The Docker image includes Ollama and will automatically:
 
 ## Deployment
 
-Deploy to AWS Fargate:
+### AWS Fargate Deployment
+
+The application supports automatic refresh token management via AWS Secrets Manager when deployed to AWS. The application will automatically detect if it's running on AWS and fetch the refresh token from Secrets Manager if it's not available as an environment variable.
+
+#### Option 1: Deploy with Automatic Secret Setup (Recommended)
+
+This will automatically create/update the secret in AWS Secrets Manager before deploying:
+
+```bash
+bun run deploy:with-secrets
+```
+
+This command:
+1. Reads `GMAIL_REFRESH_TOKEN` from your environment
+2. Creates or updates the secret in AWS Secrets Manager
+3. Deploys the application to AWS Fargate
+
+#### Option 2: Manual Secret Setup
+
+If you prefer to set up the secret separately:
+
+```bash
+# First, set up the secret in AWS Secrets Manager
+bun run setup-secrets
+
+# Then deploy
+bun run deploy
+```
+
+#### Option 3: Deploy Without Secrets Manager
+
+You can still deploy using environment variables (not recommended for production):
 
 ```bash
 bun run deploy
 ```
 
 Make sure your AWS credentials are configured with the profile specified in `deploy.yaml`.
+
+#### How It Works
+
+- **Local Development**: The application uses `GMAIL_REFRESH_TOKEN` from environment variables or `.env` file
+- **AWS Deployment**: The application automatically detects it's running on AWS (via `ECS_CONTAINER_METADATA_URI` or `AWS_EXECUTION_ENV`) and:
+  1. First tries to use `GMAIL_REFRESH_TOKEN` environment variable
+  2. If not found, fetches from AWS Secrets Manager at `{app_name}/gmail-refresh-token`
+  3. Falls back to error if neither is available
+
+The IAM role for the ECS task is automatically configured with permissions to read from Secrets Manager (see `deploy.yaml`).
 
 ## How It Works
 
@@ -148,12 +190,29 @@ The Google Sheet should have:
 
 The sheet is fetched as CSV from the public export URL.
 
+## Available Scripts
+
+- `bun run start` - Start the application
+- `bun run dev` - Start in watch mode (auto-reload on changes)
+- `bun run test` - Run test script (processes a single email)
+- `bun run get-token` - Get Gmail OAuth refresh token
+- `bun run setup-secrets` - Create/update refresh token in AWS Secrets Manager
+- `bun run deploy` - Deploy to AWS Fargate
+- `bun run deploy:with-secrets` - Deploy with automatic secret setup
+
 ## Troubleshooting
 
 ### Gmail API Errors
 - Ensure OAuth credentials are correct
 - Check that Gmail API is enabled in Google Cloud Console
 - Verify refresh token is valid
+- For AWS deployments, ensure the secret exists in AWS Secrets Manager and the IAM role has permissions
+
+### AWS Secrets Manager Issues
+- Verify `GMAIL_REFRESH_TOKEN` is set in your environment before running `setup-secrets`
+- Check that your AWS credentials are configured correctly (profile specified in `deploy.yaml`)
+- Ensure the IAM role has `secretsmanager:GetSecretValue` and `secretsmanager:DescribeSecret` permissions
+- Verify the secret name matches `{app_name}/gmail-refresh-token` (check `deploy.yaml` for app_name)
 
 ### Ollama Connection Issues
 - Ensure Ollama is running: `curl http://localhost:11434/api/tags`
