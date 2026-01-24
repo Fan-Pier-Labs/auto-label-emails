@@ -8,16 +8,21 @@
     "dev": "bun run --watch src/index.ts",
     "test": "bun run test-single-email.ts",
     "get-token": "bun run get-refresh-token.ts",
-    "deploy": "python3 ./node_modules/deploy/main.py --config deploy.yaml"
+    "deploy": "python3 ./node_modules/deploy/main.py --config deploy.yaml",
+    "setup-secrets": "bun run scripts/setup-secrets.ts",
+    "deploy:with-secrets": "bash scripts/deploy-with-secrets.sh"
   },
   "devDependencies": {
-    "deploy": "https://github.com/Fan-Pier-Labs/deploy.git",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.10.0",
+    "deploy": "https://github.com/Fan-Pier-Labs/deploy.git",
+    "js-yaml": "^4.1.1",
     "typescript": "^5.3.3"
   },
   "dependencies": {
     "googleapis": "^129.0.0",
     "openai": "^4.20.1",
-    "csv-parse": "^5.5.3"
+    "csv-parse": "^5.5.3",
+    "@aws-sdk/client-secrets-manager": "^3.0.0"
   }
 }

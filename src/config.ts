@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 
 export interface Config {
   gmail: {
@@ -62,7 +63,33 @@ function extractSpreadsheetId(urlOrId: string): string {
   );
 }
 
-export function loadConfig(): Config {
+/**
+ * Fetches refresh token from AWS Secrets Manager.
+ * Only attempts to fetch if running in AWS environment.
+ */
+async function getRefreshTokenFromSecretsManager(): Promise<string | null> {
+  // Only try to fetch from Secrets Manager if running on AWS (ECS)
+  if (!process.env.ECS_CONTAINER_METADATA_URI && !process.env.AWS_EXECUTION_ENV) {
+    return null;
+  }
+  
+  try {
+    // Try to get app name from environment or use default
+    const appName = process.env.APP_NAME || 'auto-email-labeling';
+    const secretName = `${appName}/gmail-refresh-token`;
+    const region = process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-2';
+    
+    const client = new SecretsManagerClient({ region });
+    const response = await client.send(new GetSecretValueCommand({ SecretId: secretName }));
+    
+    return response.SecretString || null;
+  } catch (error) {
+    console.log('Could not fetch refresh token from Secrets Manager:', error);
+    return null;
+  }
+}
+
+export async function loadConfig(): Promise<Config> {
   // Try to load from google_creds.json first
   let gmailClientId: string | undefined;
   let gmailClientSecret: string | undefined;
@@ -85,14 +112,20 @@ export function loadConfig(): Config {
   // Fall back to environment variables if not found in file
   gmailClientId = gmailClientId || process.env.GMAIL_CLIENT_ID;
   gmailClientSecret = gmailClientSecret || process.env.GMAIL_CLIENT_SECRET;
-  const gmailRefreshToken = process.env.GMAIL_REFRESH_TOKEN;
+  let gmailRefreshToken = process.env.GMAIL_REFRESH_TOKEN;
+
+  // If refresh token not found in environment, try to fetch from AWS Secrets Manager
+  if (!gmailRefreshToken) {
+    gmailRefreshToken = await getRefreshTokenFromSecretsManager() || undefined;
+  }
 
   if (!gmailClientId || !gmailClientSecret || !gmailRefreshToken) {
     throw new Error(
       'Missing required Gmail OAuth credentials.\n' +
       'Either:\n' +
       '  1. Create google_creds.json with client_id and client_secret, and set GMAIL_REFRESH_TOKEN env var\n' +
-      '  2. Set GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, and GMAIL_REFRESH_TOKEN environment variables'
+      '  2. Set GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, and GMAIL_REFRESH_TOKEN environment variables\n' +
+      '  3. Store GMAIL_REFRESH_TOKEN in AWS Secrets Manager (when running on AWS)'
     );
   }
 

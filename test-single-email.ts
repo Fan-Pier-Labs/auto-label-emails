@@ -9,7 +9,7 @@ async function testSingleEmail() {
   console.log('=== Testing Single Email Processing ===\n');
 
   // Load configuration
-  const config = loadConfig();
+  const config = await loadConfig();
   console.log(`AI Provider: ${config.ai.provider}`);
   console.log(`Tracking Mode: ${config.processing.useInMemoryTracking ? 'In-Memory' : 'Gmail Label'}`);
   if (!config.processing.useInMemoryTracking) {
