@@ -2,7 +2,7 @@
 
 ## to do
 
-- [ ] when deploying to aws, we should store the refresh token in aws secrets manager
+- [X] when deploying to aws, we should store the refresh token in aws secrets manager
 
 - [ ] also add the ability to enable/disable the deterministic rules from the spread sheet as well. we can use columns F:G
 
